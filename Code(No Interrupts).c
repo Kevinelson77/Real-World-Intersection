@@ -5,9 +5,9 @@
 
 #include "stm32f4xx.h"
 
-#define RS 0x20     							// PA5 mask for reg select
-#define RW 0x40     							// PA6 mask for read/write
-#define EN 0x80     							// PA7 mask for enable
+#define RS 0x20     		// PA5 mask for reg select
+#define RW 0x40     		// PA6 mask for read/write
+#define EN 0x80     		// PA7 mask for enable
 
 void delayMs(int n);
 void LCD_command(unsigned char command);
@@ -30,20 +30,20 @@ int main(void) {
 	unsigned char mode_2[11] = "Mode: Rural";
 	unsigned char mode_3[20] = "Mode:Blinking Yellow";
 	
-	RCC->AHB1ENR = 7;          			// enable GPIOA/B/C clock
+	RCC->AHB1ENR = 7;          	// enable GPIOA/B/C clock
 	RCC->APB2ENR = 0x4000;         	// enable SYSCFG clock
-	LCD_init(); 										// initialize LCD controller
+	LCD_init(); 			// initialize LCD controller
 	
 	for(int k=0; k<28; k++){
-			LCD_data(mode_question[k]);							// Prints Mode Question
+		LCD_data(mode_question[k]);		// Prints Mode Question
 	}
 	LCD_command(0xC0);
 	for(int k=29; k<46; k++){
-			LCD_data(mode_question[k]);
+		LCD_data(mode_question[k]);
 	}
 	key = 0;
 	int updated_key = 0;
-	int should_scroll = 1;												// variable to see if the LCD should scroll
+	int should_scroll = 1;				// variable to see if the LCD should scroll
 	int should_print_mode = 1; 
 	while(1) {
 		updated_key = keypad_getkey();
@@ -61,39 +61,39 @@ int main(void) {
 		LCD_command(0x01);
 		should_scroll = 0;
 		if (key == 1)
-			{															// if Urban Mode is selected
-			if (should_print_mode) {									// Prints when 1(1 at the start)
+			{						// if Urban Mode is selected
+			if (should_print_mode) {			// Prints when 1(1 at the start)
 			  for(int k=0; k<11; k++) {
-			    LCD_data(mode_1[k]);									// Prints Urban mode
+			    LCD_data(mode_1[k]);			// Prints Urban mode
 		    }
-			  should_print_mode = 0;									// stops mode_1 from printing
+			  should_print_mode = 0;			// stops mode_1 from printing
 		  }
-			urban_traffic_light();										// Starts Urban Traffic Light
+			urban_traffic_light();				// Starts Urban Traffic Light
 		} 
-		else if (key == 2) {												// if Rural Mode is selected
-			if (should_print_mode) {									// Prints when 1(1 at the start)
+		else if (key == 2) {					// if Rural Mode is selected
+			if (should_print_mode) {			// Prints when 1(1 at the start)
 			  for(int k=0; k<11; k++) {
-				  LCD_data(mode_2[k]);									// Prints Rural mode
+				  LCD_data(mode_2[k]);			// Prints Rural mode
 	      }
-			  should_print_mode = 0;									// stops mode_1 from printing
+			  should_print_mode = 0;			// stops mode_1 from printing
 			}
-			rural_traffic_light();										// Starts Rural Traffic Light
+			rural_traffic_light();				// Starts Rural Traffic Light
 		}
-		else if (key == 3) {												// if Rural Mode is selected
-			if (should_print_mode) {									// Prints when 1(1 at the start)
+		else if (key == 3) {					// if Rural Mode is selected
+			if (should_print_mode) {			// Prints when 1(1 at the start)
 				for(int k=0; k<14; k++) {
-					LCD_data(mode_3[k]);									// Prints Blinking mode
+					LCD_data(mode_3[k]);		// Prints Blinking mode
 				}
 				LCD_command(0xC0);
 				for(int k=14; k<20; k++) {
 					LCD_data(mode_3[k]);
 				}
-			  should_print_mode = 0;									// stops mode_1 from printing
+			  should_print_mode = 0;			// stops mode_1 from printing
 			}
-			blinking_yellow();												// Starts Blinking Yellow Light
+			blinking_yellow();				// Starts Blinking Yellow Light
 		}
-		if((GPIOC->IDR & 0x0400) != 0x0400){				// If crosswalk push button is pushed
-			crosswalk_countdown();										// Start displaying countdown
+		if((GPIOC->IDR & 0x0400) != 0x0400){			// If crosswalk push button is pushed
+			crosswalk_countdown();				// Start displaying countdown
 		}
 	}
 }
@@ -113,79 +113,79 @@ int scroll_and_update_cursor(int scroll_cursor) {
 
 // Urban Traffic Light
 void urban_traffic_light(void) {
-	 	GPIOA->MODER = 0xF00055FF; 			// clear PA8-13
-		GPIOA->MODER = 0x55555555; 			// set pins to output mode (PA8-PA13)
+	 	GPIOA->MODER = 0xF00055FF; 		// clear PA8-13
+		GPIOA->MODER = 0x55555555; 		// set pins to output mode (PA8-PA13)
 		GPIOC->PUPDR = 0x00150055;	   	// pull up PC10
-		GPIOA->ODR = 0x00002100; 				// turn on NSG(PA8), EWR(PA13)
+		GPIOA->ODR = 0x00002100; 		// turn on NSG(PA8), EWR(PA13)
 			delayMs(5000);
 		if((GPIOC->IDR & 0x0400) != 0x0400){
-			GPIOA->ODR = 0x00002200; 				// turn on NSY(PA9), EWR(PA13)
+			GPIOA->ODR = 0x00002200; 	// turn on NSY(PA9), EWR(PA13)
 			delayMs(2000);
 			crosswalk_countdown();
 			return;
 		}
-		GPIOA->ODR = 0x00002200; 				// turn on NSY(PA9), EWR(PA13)
+		GPIOA->ODR = 0x00002200; 		// turn on NSY(PA9), EWR(PA13)
 			delayMs(2000);
 		if((GPIOC->IDR & 0x0400) != 0x0400){
 			crosswalk_countdown();
 		}
-		GPIOA->ODR = 0x0000C00; 				// turn on NSR(PA10), EWG(PA11)
+		GPIOA->ODR = 0x0000C00; 		// turn on NSR(PA10), EWG(PA11)
 			delayMs(5000);
 		if((GPIOC->IDR & 0x0400) != 0x0400){
-			GPIOA->ODR = 0x00001400; 				// turn on NSR(PA10), EWY(PA12)
+			GPIOA->ODR = 0x00001400; 	// turn on NSR(PA10), EWY(PA12)
 			delayMs(2000);
 			crosswalk_countdown();
 			return;
 		}
-		GPIOA->ODR = 0x00001400; 				// turn on NSR(PA10), EWY(PA12)
+		GPIOA->ODR = 0x00001400; 		// turn on NSR(PA10), EWY(PA12)
 			delayMs(2000);
 }
 
 // Rural Traffic Light
 void rural_traffic_light(void){
-	 	GPIOA->MODER = 0xF00055FF; 						// clear PA8-13
-		GPIOA->MODER = 0x55555555; 						// set pins to output mode (PA8-PA13)
+	 	GPIOA->MODER = 0xF00055FF; 		// clear PA8-13
+		GPIOA->MODER = 0x55555555; 		// set pins to output mode (PA8-PA13)
 		
-		GPIOA->ODR = 0x00002100;  						// turn on NSG(PA8), EWR(PA13)
+		GPIOA->ODR = 0x00002100;  		// turn on NSG(PA8), EWR(PA13)
 			delayMs(5000);
 		if((GPIOC->IDR & 0x0400) != 0x0400){
-			GPIOA->ODR = 0x00002200; 				// turn on NSY(PA9), EWR(PA13)
+			GPIOA->ODR = 0x00002200; 	// turn on NSY(PA9), EWR(PA13)
 			delayMs(2000);
 			crosswalk_countdown();
 			return;
 		}
 		while (GPIOC->IDR	&= 0x00000100){			// pin 8
 			if((GPIOC->IDR & 0x0400) != 0x0400){
-				GPIOA->ODR = 0x00002200; 				  // turn on NSY(PA9), EWR(PA13)
+				GPIOA->ODR = 0x00002200; 		// turn on NSY(PA9), EWR(PA13)
 				delayMs(2000);
 				crosswalk_countdown();
 		}
-		GPIOA->ODR = 0x00002100;  						// turn on NSG(PA8), EWR(PA13)
+		GPIOA->ODR = 0x00002100;  				// turn on NSG(PA8), EWR(PA13)
 			delayMs(5000);	
 		}
-		GPIOA->ODR =  0x00002200;  						// turn on NSY(PA9), EWR(PA13)
+		GPIOA->ODR =  0x00002200;  				// turn on NSY(PA9), EWR(PA13)
 			delayMs(2000);
 		if((GPIOC->IDR & 0x0400) != 0x0400){
 			crosswalk_countdown();
 		}
-		GPIOA->ODR =  0x00000C00;  						// turn on NSR(PA10), EWG(PA11)
+		GPIOA->ODR =  0x00000C00;  				// turn on NSR(PA10), EWG(PA11)
 			delayMs(5000);	
 		while(GPIOC->IDR	&= 0x00000200){			// pin 9
 			if((GPIOC->IDR & 0x0400) != 0x0400){
-				GPIOA->ODR =  0x00001400;  				// turn on NSR(PA10), EWY(PA12)
+				GPIOA->ODR =  0x00001400;  		// turn on NSR(PA10), EWY(PA12)
 				delayMs(2000);
 				crosswalk_countdown();
 		}
-		GPIOA->ODR =  0x00000C00;  						// turn on NSR(PA10), EWG(PA11)
+		GPIOA->ODR =  0x00000C00;  				// turn on NSR(PA10), EWG(PA11)
 			delayMs(5000);	
 		}
 		if((GPIOC->IDR & 0x0400) != 0x0400){
-			GPIOA->ODR = 0x00001400; 				// turn on NSR(PA10), EWY(PA12)
+			GPIOA->ODR = 0x00001400; 			// turn on NSR(PA10), EWY(PA12)
 			delayMs(2000);
 			crosswalk_countdown();
 			return;
 		}		
-		GPIOA->ODR =  0x00001400;  						// turn on NSR(PA10), EWY(PA12)
+		GPIOA->ODR =  0x00001400;  				// turn on NSR(PA10), EWY(PA12)
 			delayMs(2000);	
 }
 
@@ -193,7 +193,7 @@ void rural_traffic_light(void){
 void crosswalk_countdown(void){		
 unsigned int myCountdown[] = {0xD700, 0xFF00, 0x4700, 0xF500, 0xD500, 0xC600, 0x9F00, 0xB300, 0x0600, 0x7F00, 0x00, 0x7F00, 0x00, 0x7F00};
 
-	GPIOA->ODR = 0x00002400; 									// turn on NSR(PA10), EWR(PA13)
+	GPIOA->ODR = 0x00002400; 				// turn on NSR(PA10), EWR(PA13)
 		delayMs(2000);
 	for(int i=0; i<14; i++) {
 		GPIOB->ODR = myCountdown[i];
@@ -203,12 +203,12 @@ unsigned int myCountdown[] = {0xD700, 0xFF00, 0x4700, 0xF500, 0xD500, 0xC600, 0x
 
 // Blinking Yellow Light
 void blinking_yellow(void){
-		GPIOA->MODER = 0xF00055FF; 						// clear PA8-13
-		GPIOA->MODER = 0x55555555; 						// set pins to output mode (PA8-PA13)
+		GPIOA->MODER = 0xF00055FF; 			// clear PA8-13
+		GPIOA->MODER = 0x55555555; 			// set pins to output mode (PA8-PA13)
 		
-		GPIOA->ODR = 0x1200;									// Turns on NSY(PA9), EWY(PA12)
+		GPIOA->ODR = 0x1200;				// Turns on NSY(PA9), EWY(PA12)
 			delayMs(2000);
-		GPIOA->ODR = 0x0000;									// Turns off NSY(PA9), EWY(PA12)
+		GPIOA->ODR = 0x0000;				// Turns off NSY(PA9), EWY(PA12)
 			delayMs(2000);
 }
 
@@ -231,13 +231,13 @@ void LCD_init(void) {
 
 // Port Initializations for LCD. PA5-R/S, PA6-R/W, PA7-EN, PB0-PB7 for D0-D7, respectively.
 void PORTS_init(void) {
-    GPIOA->MODER = 0;    						// clear pin mode
-    GPIOA->MODER = 0x55555555;    	// set pin output mode
-    GPIOA->BSRR  = 0x00C00000;      // turn off EN and R/W
-    GPIOB->MODER = 0;    						// clear pin mode
-    GPIOB->MODER = 0x55555555;    	// set pin output mode
+    GPIOA->MODER = 0;    			// clear pin mode
+    GPIOA->MODER = 0x55555555;    		// set pin output mode
+    GPIOA->BSRR  = 0x00C00000;      		// turn off EN and R/W
+    GPIOB->MODER = 0;    			// clear pin mode
+    GPIOB->MODER = 0x55555555;    		// set pin output mode
 		GPIOC->MODER = 0xFF000000;    	// clear pin mode to input
-    GPIOC->PUPDR = 0x00150055;    	// enable pull up resistors for column pins, crosswalk & pressure pads
+    GPIOC->PUPDR = 0x00150055;    		// enable pull up resistors for column pins, crosswalk & pressure pads
 }
 
 // Send command to LCD
@@ -248,7 +248,7 @@ void LCD_command(unsigned char command) {
     delayMs(0);
     GPIOA->BSRR = EN << 16;         // clear E
     if (command < 4)
-        delayMs(2);         				// command 1 and 2 needs up to 1.64ms
+        delayMs(2);         	    // command 1 and 2 needs up to 1.64ms
     else
         delayMs(1);         				
 }
